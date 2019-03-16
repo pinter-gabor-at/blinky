@@ -1,13 +1,11 @@
 -- Main program
 
--- Blue LED
--- 1=OFF, 0=ON
-local BLUELED = 4
+-- Includes
+local led = require("led")
 
 -- Blink blue LED
-gpio.mode(BLUELED, gpio.OUTPUT)
 tmr.create():alarm(500, tmr.ALARM_AUTO, function()
-    local state = 1 - gpio.read(BLUELED)
-    print("Blue LED " .. (state == 1 and "OFF" or "ON"))
-    gpio.write(BLUELED, state)
+    local state = not led.getstate()
+    print("Blue LED " .. (state and "OFF" or "ON"))
+    return led.setstate(state)
 end)
