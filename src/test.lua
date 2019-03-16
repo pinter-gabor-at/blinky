@@ -1,5 +1,5 @@
 -- For line-by-line execution in ESPlorer
-if false do
+local function _()
 	tmr.create():alarm(3000, tmr.ALARM_SINGLE, function() print("Hello world") end)
 	-- Station mode
 	wifi.setmode(wifi.STATION)
@@ -10,7 +10,22 @@ if false do
 	-- Check IP
 	print(wifi.sta.getip())
 	-- Tests
+	dofile("testutil_test.lua")
+	dofile("ESP12_test.lua")
+	dofile("led_test.lua")
+	dofile("ledpattern_test.lua")
+	dofile("texttomorse_test.lua")
+	dofile("morsetoblinky_test.lua")
+	dofile("wlistsimple_test.lua")
+	dofile("wlistfancy_test.lua")
+	dofile("wrange_test.lua")
+	dofile("wconnect_test.lua")
+	dofile("wresolve_test.lua")
+	dofile("whttp_test.lua")
+	dofile("connect_test.lua")
 	dofile("main.lua")
+	start()
+	stop()
 	-- List globals
 	for k, v in pairs(_G) do print(k, v) end
 	-- Get heap
