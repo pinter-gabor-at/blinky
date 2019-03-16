@@ -1,0 +1,5 @@
+*.sublime-workspace
+*.bak
+.*
+!.gitignore
+/src/config.lua
