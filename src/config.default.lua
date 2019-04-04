@@ -34,3 +34,8 @@ FORMAT = "text"
 -- Pattern speed
 -- The length of one element is 1200/WPM ms
 WPM = 5
+
+-- OTA addresses
+OTAS = {
+	"http://192.168.2.2:1080/esp/blinky/ota/index.lua"
+}

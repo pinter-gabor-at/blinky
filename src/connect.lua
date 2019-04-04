@@ -1,5 +1,4 @@
--- Keep connected to the best network in range
--- and get the same data repeatedly
+-- Connect to all know networks in range, and get data
 
 -- Includes
 local wrange = require("wrange")
@@ -12,24 +11,6 @@ local M = {}
 
 -- Index
 local index
-
-
--- Timer
-local itmr
-
-
--- Interval between accesses in ms
-local interval = 60000
-
-
--- Set interval between items in ms
--- The default is 60000 ms.
-function M.setinterval(value)
-	interval = value
-	if itmr then
-		itmr:interval(value)
-	end
-end
 
 
 -- Known networks
@@ -51,27 +32,27 @@ M.callback = nil
 
 
 -- Start
--- It is possible to stop the cycle cleanly in callback by calling 'stop'
 function M.start()
+
+	-- To prevent repeated calls
+	local running
 
 	-- Execute callback and restart timer
 	local function docallback(data)
 		if M.callback then
-			node.task.post(function()
+			return node.task.post(function()
 				M.callback(data)
-				if itmr then
-					itmr:start()
-				end
+				running = nil
 			end)
-		elseif itmr then
-			itmr:start()
+		else
+			running = nil
 		end
 	end
 
 	-- Iterator, defined later
 	local iter
 
-	-- Get PATTERN
+	-- Get data
 	-- Callback of whttp.mget(..., callback(url, status, data))
 	--   url = url of the data
 	--   status = regular HTTP status code, or -1 on error
@@ -80,10 +61,10 @@ function M.start()
 		if url and (0 <= status) then
 			print("Got data from " .. url)
 			-- Success
-			docallback(data)
+			return docallback(data)
 		else
 			-- Next
-			node.task.post(iter)
+			return node.task.post(iter)
 		end
 	end
 
@@ -92,10 +73,10 @@ function M.start()
 	local function getip(t)
 		if t then
 			print("Got IP: " .. t.IP)
-			whttp.mget(M.urls, nil, getdata)
+			return whttp.mget(M.urls, nil, getdata)
 		else
 			-- Next
-			node.task.post(iter)
+			return node.task.post(iter)
 		end
 	end
 
@@ -104,41 +85,30 @@ function M.start()
 	local function process(t)
 		local i
 
+		-- For each know networks in the list
 		iter = function()
 			i = i + 1
 			if i <= #t then
 				print("Connecting to " .. t[i].ssid)
-				wconnect.connect(t[i], getip)
+				return wconnect.connect(t[i], getip)
 			else
 				-- End of the list, and no result
-				docallback()
+				return docallback()
 			end
 		end
 
 		-- Start evaluating the first
 		i = 0
-		node.task.post(iter)
+		return node.task.post(iter)
 	end
 
-	-- Get list of known networks in range, ordered by preference
-	local function geturlsdata()
-		wrange.getlist(M.known, process)
-	end
-
-	-- Get data now
-	geturlsdata()
-	-- and then do it repeatedly
-	itmr = tmr.create()
-	itmr:register(M.interval, tmr.ALARM_SEMI, geturlsdata)
-end
-
-
--- Stop
--- It should be called in the callback.
-function M.stop()
-	if itmr then
-		itmr:unregister()
-		itmr = nil
+	-- Get list, connect, and try to get data from all 
+	-- known networks and URLs until it succeeds.
+	if not running then
+		running = true
+		-- Get list of known networks in range,
+		-- ordered by preference and 
+		return wrange.getlist(M.known, process)
 	end
 end
 

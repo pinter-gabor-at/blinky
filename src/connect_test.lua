@@ -21,8 +21,6 @@ return function(callback)
 	-- Test
 	node.task.post(function()
 		print("\nTrying to get data from alternative locations.")
-		-- As fast as possible
-		M.interval = 1
 		M.known = 
 			{
 				{pattern="^PINTER%-TEST", pwd="password", pref=10},
@@ -34,8 +32,14 @@ return function(callback)
 				"http://nowhere.sun/nothing.txt",
 				"http://pintergabor.eu/blinky/PINTER%20GABOR.txt",
 			}
-		M.callback = printit
-		M.start()
+		M.callback = 
+			function(data)
+				printit(data)
+				-- Do it again, as fast as possible
+				return M.start()
+			end
+		-- Start
+		return M.start()
 	end)
 
 	-- End test cleanly
@@ -43,7 +47,6 @@ return function(callback)
 		M.callback =
 			function(data)
 				printit(data)
-				M.stop()
 				print("Done")
 				return T.endtest(success)
 			end

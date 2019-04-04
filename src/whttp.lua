@@ -6,7 +6,7 @@ local M = {}
 
 -- Encapsulate http.get()
 function M.get(url, headers, callback)
-	http.get(url, headers, callback)
+	return http.get(url, headers, callback)
 end
 
 
@@ -16,7 +16,7 @@ function M.mget(urls, headers, callback)
 	-- Execute callback
 	local function docallback(url, status, body, headers)
 		if callback then
-			node.task.post(function() 
+			return node.task.post(function() 
 				callback(url, status, body, headers)
 			end)
 		end
@@ -32,10 +32,10 @@ function M.mget(urls, headers, callback)
 	local function getcallback(status, body, headers)
 		if status == 200 then
 			-- Success
-			docallback(urls[i], status, body, headers)
+			return docallback(urls[i], status, body, headers)
 		else
 			-- Try next
-			node.task.post(iter)
+			return node.task.post(iter)
 		end
 	end
 
@@ -43,15 +43,15 @@ function M.mget(urls, headers, callback)
 	iter = function()
 		i = i + 1
 		if i <= #urls then
-			M.get(urls[i], nil, getcallback)
+			return M.get(urls[i], nil, getcallback)
 		else
 			-- End of the list, and no result
-			docallback(nil, -999)
+			return docallback(nil, -999)
 		end
 	end
 
 	-- Start evaluating the first
-	node.task.post(iter)
+	return node.task.post(iter)
 end
 
 

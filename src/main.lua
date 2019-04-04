@@ -1,5 +1,8 @@
 -- Main program
 
+-- Welcome message
+print("\nBlinky V2.1\n\n")
+
 -- Config
 if not pcall(loadfile("config.lua")) and
    not pcall(loadfile("config.default.lua")) then
@@ -33,6 +36,9 @@ local function toblinky(format, data)
 	return data
 end
 
+-- Repeat timer
+local itmr
+
 -- Start
 function start()
 	-- Speed
@@ -44,8 +50,8 @@ function start()
 	-- Try to keep ledpattern.pattern updated
 	-- regularily from the internet
 	if WIFI and URLS then
-		connect = require("connect")
-		connect.interval = 60000
+		-- Connect
+		local connect = require("connect")
 		connect.known = WIFI
 		connect.urls = URLS
 		connect.callback =
@@ -55,8 +61,22 @@ function start()
 					ledpattern.pattern = toblinky(FORMAT, data)
 					ct = ct+1
 					print(ct, ledpattern.pattern)
+					-- OTA update
+					dofile("update.lua")(
+						OTAS,
+						"V2.1",
+						function()
+							-- Next
+							if itmr then
+								return itmr:start()
+							end
+						end)
 				end
 			end
+		-- Repeat timer
+		itmr = tmr.create()
+		itmr:register(60000, tmr.ALARM_SEMI, connect.start)
+		-- First
 		connect.start()
 	else
 		-- Fallback
@@ -68,9 +88,14 @@ function start()
 end
 
 -- In case we have to stop it
-function stop()
-	connect.stop()
-	return ledpattern.stop()
+function stop(callback)
+	-- Stop pattern
+	ledpattern.stop()
+	-- Stop timer
+	if itmr then
+		itmr:unregister()
+		itmr = nil
+	end
 end
 
 -- Autostart
