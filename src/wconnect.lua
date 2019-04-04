@@ -61,9 +61,9 @@ function M.connect(t, callback)
 	totmr = tmr.create()
 	totmr:alarm(60000, tmr.ALARM_SEMI, timeout)
 	-- Check if we are already connected to this network
-	local ssid, _, _, bssid = wifi.sta.getconfig()
+	local ssid, _, bssid_set, bssid = wifi.sta.getconfig()
 	local IP, netmask, gateway = wifi.sta.getip()
-	if ssid==t.ssid and bssid==t.bssid and IP then
+	if ssid==t.ssid and (bssid_set == 0 or bssid == t.bssid) and IP then
 		docallback({IP=IP, netmask=netmask, gateway=gateway})
 	else
 		-- Register WIFI callbacks

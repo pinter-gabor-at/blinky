@@ -23,7 +23,7 @@ local interval = 60000
 
 
 -- Set interval between items in ms
--- The default is 100 ms.
+-- The default is 60000 ms.
 function M.setinterval(value)
 	interval = value
 	if itmr then
@@ -33,7 +33,7 @@ end
 
 
 -- Known networks
--- {pattern, pwd, pref}
+-- {{pattern, pwd, pref}, ...}
 --   pattern is a lua pattern to match actual SSIDs.
 M.known = {}
 
@@ -44,17 +44,13 @@ M.known = {}
 M.urls = {}
 
 
--- Called after the end of the pattern period,
--- just after rendering the last item.
+-- Called after getting the data
 -- callback = callback(data)
 --   data is the data we got
 M.callback = nil
 
 
 -- Start
---   urls = list of http addresses
---   callback = callback(data)
---     data is the data we got
 -- It is possible to stop the cycle cleanly in callback by calling 'stop'
 function M.start()
 
