@@ -10,6 +10,10 @@ if false do
 	-- Check IP
 	print(wifi.sta.getip())
 	-- Tests
+	dofile("testutil_test.lua")()
+	dofile("ESP12_test.lua")()
+	dofile("led_test.lua")()
+	dofile("ledpattern_test.lua")()
 	dofile("main.lua")
 	-- List globals
 	for k, v in pairs(_G) do print(k, v) end
